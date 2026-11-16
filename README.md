@@ -75,6 +75,25 @@ The SQL file `sql/schema.sql` defines normalized tables for an expanded placemen
 
 The [Train Placement360 model workflow](https://github.com/Anjaney5000/Placement360-Student-Recruitment-Analytics-Platform/actions/workflows/train-model.yml) downloads the 10,000-row dataset, trains the Random Forest model using the publisher's train + validation splits, and evaluates once on the untouched official test split. Generated metrics, predictions, confusion matrix, ROC curve and feature importance reports are committed under `reports/`; the fitted model is attached to the workflow run as a downloadable artifact (30-day retention).
 
+## Latest model evaluation
+
+Latest automated run: [Training workflow](https://github.com/Anjaney5000/Placement360-Student-Recruitment-Analytics-Platform/actions/runs/43842664562).
+
+The Random Forest was fitted on the publisher's train + validation sets (8,500 rows) and evaluated on the separate official test set (1,500 rows). The generated test metrics are:
+
+| Metric | Held-out test result |
+|---|---:|
+| Accuracy | 77.33% |
+| Precision (Placed class) | 73.31% |
+| Recall (Placed class) | 72.38% |
+| F1 (Placed class) | 72.84% |
+| ROC-AUC | 86.09% |
+
+The test confusion matrix (rows = actual, columns = predicted; class order Not placed, Placed) is:
+`[[704, 166], [174, 456]]`.
+
+All results are generated from the public sample dataset, not from an institution's live placement records. The metric JSON, predictions, confusion matrix, ROC curve and feature-importance plots are under `reports/`. The fitted pipeline is available from the workflow run's `placement360-trained-model-and-reports` artifact for 30 days.
+
 ## Modelling notes
 
 - The train/test split is stratified and deterministic (random seed 42).
