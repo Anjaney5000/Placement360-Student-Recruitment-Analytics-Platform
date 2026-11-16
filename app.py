@@ -59,6 +59,19 @@ c2.metric("Placed", f"{placed:,}")
 c3.metric("Not placed", f"{not_placed:,}")
 c4.metric("Placement rate", f"{rate:.1%}")
 
+optional_metrics = []
+company_col = next((c for c in ["Company", "CompanyName", "Employer", "CompanyID"] if c in filtered.columns), None)
+engagement_col = next((c for c in ["EngagementEvents", "EngagementScore", "EngagementCount"] if c in filtered.columns), None)
+if company_col:
+    optional_metrics.append(("Participating employers", int(filtered[company_col].nunique())))
+if engagement_col:
+    engaged = pd.to_numeric(filtered[engagement_col], errors="coerce").fillna(0)
+    optional_metrics.append(("Students with engagement", int((engaged > 0).sum())))
+if optional_metrics:
+    metric_cols = st.columns(len(optional_metrics))
+    for metric_col, (label, value) in zip(metric_cols, optional_metrics):
+        metric_col.metric(label, f"{value:,}")
+
 left, right = st.columns(2)
 with left:
     st.subheader("Placement status")
