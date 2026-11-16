@@ -5,11 +5,12 @@ Placement360 is a student placement analytics project that combines an instituti
 ## Features
 
 - Student-level placement KPIs: placed students, total students, and placement rate.
+- Optional institution-data KPIs for student engagement and participating employers when the corresponding fields are present.
 - Cohort drill-downs when the uploaded institutional dataset includes fields such as Department and Batch.
 - Academic and employability feature analysis: CGPA, internships, projects, certifications, aptitude, soft skills, training and prior academic scores.
 - Random Forest classifier to estimate placement outcome from student attributes.
 - Evaluation with precision, recall, F1, ROC-AUC and confusion matrix.
-- Optional normalized PostgreSQL schema for richer institutional workflows: student records, applications, interview rounds, internship records and offers.
+- Optional normalized PostgreSQL schema for richer institutional workflows: student records, skills, engagement events, departments, batches, employers, applications, interview rounds, internship records, placement outcomes and offers. It includes cohort placement, recruitment-funnel, employer-participation and engagement views.
 
 ## Training dataset
 
