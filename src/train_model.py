@@ -2,12 +2,14 @@
 from pathlib import Path
 import json
 import joblib
+import matplotlib.pyplot as plt
 import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.impute import SimpleImputer
 from sklearn.metrics import (
     accuracy_score, classification_report, confusion_matrix,
+    ConfusionMatrixDisplay, RocCurveDisplay,
     f1_score, precision_score, recall_score, roc_auc_score
 )
 from sklearn.model_selection import train_test_split
@@ -113,12 +115,43 @@ def main() -> None:
     }
     joblib.dump(pipeline, MODELS / "placement_pipeline.joblib")
     (REPORTS / "placement_metrics.json").write_text(json.dumps(metrics, indent=2))
+    pd.DataFrame({
+        "actual_placed": y_test.to_numpy(),
+        "predicted_placed": predictions,
+        "placement_probability": probabilities,
+    }).to_csv(REPORTS / "test_predictions.csv", index=False)
+
+    fig, ax = plt.subplots(figsize=(5.5, 4.5))
+    ConfusionMatrixDisplay.from_predictions(
+        y_test, predictions, display_labels=["Not placed", "Placed"],
+        cmap="Blues", colorbar=False, ax=ax
+    )
+    ax.set_title("Placement outcome — held-out test set")
+    fig.tight_layout()
+    fig.savefig(REPORTS / "confusion_matrix.png", dpi=160)
+    plt.close(fig)
+
+    fig, ax = plt.subplots(figsize=(5.5, 4.5))
+    RocCurveDisplay.from_predictions(y_test, probabilities, ax=ax)
+    ax.set_title("ROC curve — held-out test set")
+    fig.tight_layout()
+    fig.savefig(REPORTS / "roc_curve.png", dpi=160)
+    plt.close(fig)
 
     names = pipeline.named_steps["preprocess"].get_feature_names_out()
     importances = pipeline.named_steps["model"].feature_importances_
-    pd.DataFrame({"feature": names, "importance": importances}).sort_values(
+    importance_df = pd.DataFrame({"feature": names, "importance": importances}).sort_values(
         "importance", ascending=False
-    ).to_csv(REPORTS / "feature_importance.csv", index=False)
+    )
+    importance_df.to_csv(REPORTS / "feature_importance.csv", index=False)
+    top = importance_df.head(15).sort_values("importance")
+    fig, ax = plt.subplots(figsize=(8, 5.5))
+    ax.barh(top["feature"], top["importance"])
+    ax.set_title("Top placement predictors — Random Forest")
+    ax.set_xlabel("Feature importance")
+    fig.tight_layout()
+    fig.savefig(REPORTS / "feature_importance.png", dpi=160)
+    plt.close(fig)
     print(json.dumps({k: v for k, v in metrics.items() if k != "classification_report"}, indent=2))
 
 
