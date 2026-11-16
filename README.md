@@ -71,6 +71,10 @@ The SQL file `sql/schema.sql` defines normalized tables for an expanded placemen
 └── README.md
 ```
 
+## Automated training and generated reports
+
+The [Train Placement360 model workflow](https://github.com/Anjaney5000/Placement360-Student-Recruitment-Analytics-Platform/actions/workflows/train-model.yml) downloads the 10,000-row dataset, trains the Random Forest model using the publisher's train + validation splits, and evaluates once on the untouched official test split. Generated metrics, predictions, confusion matrix, ROC curve and feature importance reports are committed under `reports/`; the fitted model is attached to the workflow run as a downloadable artifact (30-day retention).
+
 ## Modelling notes
 
 - The train/test split is stratified and deterministic (random seed 42).
