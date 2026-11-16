@@ -42,8 +42,26 @@ def main() -> None:
     if "PlacementStatus" not in df:
         raise ValueError("Expected PlacementStatus target column.")
     y = encode_target(df.pop("PlacementStatus"))
-    # SourceSplit is provenance metadata, not a student predictor.
-    X = df.drop(columns=["SourceSplit"], errors="ignore")
+    # Honour the dataset's published split: train + validation for fitting,
+    # test for the final untouched evaluation. Fall back to stratified split
+    # only when the downloaded CSV has no official split metadata.
+    if "SourceSplit" in df and {"train", "test"}.issubset(set(df["SourceSplit"].dropna().astype(str))):
+        split_labels = df["SourceSplit"].astype(str).str.lower()
+        train_mask = split_labels.isin(["train", "validation", "valid"])
+        test_mask = split_labels.eq("test")
+        if not train_mask.any() or not test_mask.any():
+            raise ValueError("SourceSplit metadata found, but train/test rows are incomplete.")
+        X_all = df.drop(columns=["PlacementStatus", "SourceSplit"], errors="ignore")
+        X_train, X_test = X_all.loc[train_mask], X_all.loc[test_mask]
+        y_train, y_test = y.loc[train_mask], y.loc[test_mask]
+        split_method = "official train + validation; official test"
+    else:
+        X_all = df.drop(columns=["SourceSplit"], errors="ignore")
+        X_train, X_test, y_train, y_test = train_test_split(
+            X_all, y, test_size=0.2, stratify=y, random_state=42
+        )
+        split_method = "stratified random 80/20 fallback"
+    X = X_all
     # Remove completely empty columns and obvious unique row IDs if present.
     X = X.dropna(axis=1, how="all")
     id_like = [c for c in X if c.lower() in {"id", "studentid", "student_id", "row_id"}]
@@ -67,9 +85,6 @@ def main() -> None:
         class_weight="balanced_subsample", random_state=42, n_jobs=-1
     )
     pipeline = Pipeline([("preprocess", preprocessor), ("model", classifier)])
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, stratify=y, random_state=42
-    )
     pipeline.fit(X_train, y_train)
     probabilities = pipeline.predict_proba(X_test)[:, 1]
     predictions = (probabilities >= 0.5).astype(int)
@@ -86,6 +101,9 @@ def main() -> None:
             y_test, predictions, output_dict=True, zero_division=0
         ),
         "threshold": 0.5,
+        "split_method": split_method,
+        "train_rows": int(len(X_train)),
+        "test_rows": int(len(X_test)),
         "predictor_columns": X.columns.tolist(),
     }
     joblib.dump(pipeline, MODELS / "placement_pipeline.joblib")
