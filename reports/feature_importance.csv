@@ -1,0 +1,13 @@
+feature,importance
+numeric__HSC_Marks,0.19462037032547236
+numeric__AptitudeTestScore,0.16651827883900078
+numeric__SSC_Marks,0.12061463492073922
+numeric__CGPA,0.1017473930140215
+numeric__SoftSkillsRating,0.08390873466360765
+categorical__ExtracurricularActivities_No,0.07805150587182043
+numeric__Projects,0.07370801541040278
+categorical__ExtracurricularActivities_Yes,0.06644354004232364
+numeric__Workshops/Certifications,0.05842940736257897
+numeric__Internships,0.025317240003609333
+categorical__PlacementTraining_Yes,0.015326216699386969
+categorical__PlacementTraining_No,0.015314662847036399

@@ -1,0 +1,62 @@
+{
+  "rows": 10000,
+  "placed_rate": 0.4197,
+  "accuracy": 0.7733333333333333,
+  "precision": 0.7331189710610932,
+  "recall": 0.7238095238095238,
+  "f1": 0.7284345047923323,
+  "roc_auc": 0.8608702791461413,
+  "confusion_matrix": [
+    [
+      704,
+      166
+    ],
+    [
+      174,
+      456
+    ]
+  ],
+  "classification_report": {
+    "0": {
+      "precision": 0.8018223234624146,
+      "recall": 0.8091954022988506,
+      "f1-score": 0.8054919908466819,
+      "support": 870.0
+    },
+    "1": {
+      "precision": 0.7331189710610932,
+      "recall": 0.7238095238095238,
+      "f1-score": 0.7284345047923323,
+      "support": 630.0
+    },
+    "accuracy": 0.7733333333333333,
+    "macro avg": {
+      "precision": 0.7674706472617538,
+      "recall": 0.7665024630541872,
+      "f1-score": 0.7669632478195071,
+      "support": 1500.0
+    },
+    "weighted avg": {
+      "precision": 0.7729669154538596,
+      "recall": 0.7733333333333333,
+      "f1-score": 0.773127846703855,
+      "support": 1500.0
+    }
+  },
+  "threshold": 0.5,
+  "split_method": "official train + validation; official test",
+  "train_rows": 8500,
+  "test_rows": 1500,
+  "predictor_columns": [
+    "CGPA",
+    "Internships",
+    "Projects",
+    "Workshops/Certifications",
+    "AptitudeTestScore",
+    "SoftSkillsRating",
+    "ExtracurricularActivities",
+    "PlacementTraining",
+    "SSC_Marks",
+    "HSC_Marks"
+  ]
+}
