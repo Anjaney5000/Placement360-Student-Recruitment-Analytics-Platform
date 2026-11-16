@@ -42,32 +42,37 @@ def main() -> None:
     if "PlacementStatus" not in df:
         raise ValueError("Expected PlacementStatus target column.")
     y = encode_target(df.pop("PlacementStatus"))
-    # Honour the dataset's published split: train + validation for fitting,
-    # test for the final untouched evaluation. Fall back to stratified split
-    # only when the downloaded CSV has no official split metadata.
-    if "SourceSplit" in df and {"train", "test"}.issubset(set(df["SourceSplit"].dropna().astype(str))):
-        split_labels = df["SourceSplit"].astype(str).str.lower()
+    # The publisher's train/validation/test split is preferred. Validation rows
+    # are included in fitting; the official test split remains untouched.
+    split_labels = df["SourceSplit"].astype(str).str.lower() if "SourceSplit" in df else None
+    if split_labels is not None and {"train", "test"}.issubset(set(split_labels.dropna())):
         train_mask = split_labels.isin(["train", "validation", "valid"])
         test_mask = split_labels.eq("test")
         if not train_mask.any() or not test_mask.any():
             raise ValueError("SourceSplit metadata found, but train/test rows are incomplete.")
-        X_all = df.drop(columns=["PlacementStatus", "SourceSplit"], errors="ignore")
-        X_train, X_test = X_all.loc[train_mask], X_all.loc[test_mask]
-        y_train, y_test = y.loc[train_mask], y.loc[test_mask]
+        X = df.drop(columns=["SourceSplit"], errors="ignore")
         split_method = "official train + validation; official test"
     else:
-        X_all = df.drop(columns=["SourceSplit"], errors="ignore")
-        X_train, X_test, y_train, y_test = train_test_split(
-            X_all, y, test_size=0.2, stratify=y, random_state=42
-        )
+        X = df.drop(columns=["SourceSplit"], errors="ignore")
+        train_mask = None
+        test_mask = None
         split_method = "stratified random 80/20 fallback"
-    X = X_all
-    # Remove completely empty columns and obvious unique row IDs if present.
+
+    # Remove unusable/identifier columns before splitting, keeping train/test
+    # feature columns exactly aligned.
     X = X.dropna(axis=1, how="all")
     id_like = [c for c in X if c.lower() in {"id", "studentid", "student_id", "row_id"}]
     X = X.drop(columns=id_like, errors="ignore")
     if X.empty:
         raise ValueError("No usable predictor columns remain.")
+
+    if train_mask is not None and test_mask is not None:
+        X_train, X_test = X.loc[train_mask], X.loc[test_mask]
+        y_train, y_test = y.loc[train_mask], y.loc[test_mask]
+    else:
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.2, stratify=y, random_state=42
+        )
 
     categorical = X.select_dtypes(include=["object", "bool", "category"]).columns.tolist()
     numeric = [c for c in X.columns if c not in categorical]
